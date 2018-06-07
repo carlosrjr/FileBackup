@@ -1,2 +1,8 @@
+*.txt
 backup/
 log/
+cliente/*.fbk
+cliente/backup/
+cliente/log/
+servidor/backup/
+servidor/log/
