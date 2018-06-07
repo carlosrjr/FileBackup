@@ -1,4 +1,4 @@
-*.txt
+./arquivo_ips.txt
 backup/
 log/
 cliente/*.fbk
