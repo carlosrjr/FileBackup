@@ -54,6 +54,7 @@ def backupDados(ip, password, attempt):
 
 		ok = clientSocket.recv(1024)
 		if(ok == "Conectado!"):
+			print(ok)
 			getFile(clientSocket) # Tenta realizar backup do arquivo
 		else:
 			print("Senha incorreta!")
