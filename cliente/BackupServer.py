@@ -28,28 +28,11 @@ def main():
 		if (keyConnect == keyServer):
 			connectionSocket.send("Conectado!")
 
-			if(checkPath("backup")):
-				getDefaultPath()
-				arquivo_path = open("PathFileBackup.fbk", "r")
-				path = arquivo_path.read()
-				arquivo_path.close()
-				createZipFile(path)
-
 			# Abrindo arquivo para obter o checksum md5
-			arquivo = open("backup{0}{1}{2}".format(getFileSeparator(), getNameFile(), ".zip"), "rb")
+			arquivo = open("{0}{1}{2}{3}".format("backup",getFileSeparator(), getNameFile(), ".zip"), "rb")
 
 			# Obtendo hash md5 do conteudo do arquivo
 			checksum_md5 = hashlib.md5(arquivo.read()).hexdigest()
-			'''
-			connectionSocket.send("{0}:{1}".format("Paulo",hashmd5))
-			'''
-
-			'''
-			connectionSocket.send(b'maçã-01')
-			print("CHECKSUM: {0}".format(hashmd5))
-			print("CHECKSUM: {0}".format(hashmd5).encode("utf-8"))
-			#connectionSocket.send(hashmd5.encode("utf-8"))
-			'''
 
 			# Fechando o arquivo
 			arquivo.close()
