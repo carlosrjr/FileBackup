@@ -31,7 +31,7 @@ def gerenciaConexoes(lista_ips):
 		threads.append(thread)
 
 	while(last_thread < len(threads)):
-		size = (len(threads)-last_thread) if (len(threads)-last_thread) <= 10 else 10
+		size = (len(threads)-last_thread) if (len(threads)-last_thread) <= 2 else 2
 
 		for count in range(size):
 			threads[last_thread].start()
@@ -47,6 +47,7 @@ def gerenciaConexoes(lista_ips):
 	a porta default definida 21000.
 '''
 def backupDados(ip, password, attempt):
+	print("ip: {0}    password: {1}    attempt: {2}".format(ip, password, attempt))
 	try:
 		clientSocket = getTCPConnection(ip, 23000) # Tenta estabelecer uma conexão com um host
 
@@ -89,6 +90,7 @@ def getFile(clientSocket):
 	
 	fileName = "{0}#{1}".format(nomeDispositivo, data)
 	
+
 	f = open("{0}.zip".format(fileName), "wb") # Gerando arquivo que será recebido no diretorio
 
 	rec = clientSocket.recv(1024) # recebe primeira parte do arquivo
@@ -108,31 +110,15 @@ def getFile(clientSocket):
 	print("{0}: {1}".format(nomeDispositivo, checksum_md5_cliente))
 	'''
 	# Verificando se o arquivo chegou íntegro a partir do checksum md5
+	'''
 	if(checksum_md5_servidor == checksum_md5_cliente):
 		print("igual")
-
+	'''
 '''
 	Recebe nome do computador e a data que o arquivo foi gerado
 	para ser gravado no diretório de backup
 '''
 def getFileProperty(clientSocket):
-	'''
-	fileProperty = clientSocket.recv(1024)
-	fileProperty = fileProperty.split(":");
-
-	nomeDispositivo = fileProperty[0] # Nome do host
-	#data = clientSocket.recv(1024) # A data que o arquivo de backup foi gerado
-	checksum_md5 = fileProperty[1] # Checksum MD5 para verificar a integridade do arquivo
-	'''
-	'''
-	nomeDispositivo = clientSocket.recv(1024)
-	#nomeDispositivo = "abc"
-	#checksum_md5 = clientSocket.recv(1024)
-	checksum_md5 = "123456"
-
-	print("Nome: {0}".format(nomeDispositivo))
-	print("Checksum: {0}".format(checksum_md5))
-	'''
 	json_dados = clientSocket.recv(1024)
 
 	dados = json.loads(json_dados)
@@ -141,7 +127,11 @@ def getFileProperty(clientSocket):
 	data = dados["date"]
 	checksum_md5 = dados["checksum_md5"]
 
-	return nomeDispositivo, data, checksum_md5, dados #, checksum_md5 #, data # Retornando dados sobre o arquivo
+	return nomeDispositivo, data, checksum_md5, dados
+
+def checkPath(path):
+	if(not os.path.isdir(path)):
+		os.system("mkdir {0}".format(path))
 
 def reconnect(message, attempt, ip, password):
 	print("{0}\n".format(message))
