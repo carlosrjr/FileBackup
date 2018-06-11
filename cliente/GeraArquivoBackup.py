@@ -4,13 +4,11 @@ import sys, zipfile, os
 
 def main():
 	try:
-		arquivo_path = open("PathFileBackup.fbk", "r")
-		path = arquivo_path.read()
-		arquivo_path.close()
+		path = "files"
 		checkPath(path)
 	except IOError:
 		path = getDefaultPath()
-	
+
 	createZipFile(path)
 
 def getDefaultPath():
@@ -19,22 +17,13 @@ def getDefaultPath():
 	elif sys.platform == "win32":
 		path = os.environ['USERPROFILE']
 
-	path += "{0}{1}".format(getFileSeparator(), "backup")
-	
+	path += "{0}{1}{2}".format(path , getFileSeparator(), "files")
+
 	checkPath(path)
-	writeFilePath(path)
 
 	return path
 
-def writeFilePath(path):
-	file = open("PathFileBackup.fbk", "wb")
-	file.write("{0}".format(path))
-	file.close()
-
 def createZipFile(path):
-	if(not os.path.isdir("backup")):
-		os.system("mkdir {0}".format("backup"))
-
 	nameFile = getNameFile()
 
 	zf = zipfile.ZipFile("{0}{1}{2}{3}".format("backup", getFileSeparator(), nameFile, ".zip"), "w")
