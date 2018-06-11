@@ -26,6 +26,8 @@ def getDefaultPath():
 def createZipFile(path):
 	nameFile = getNameFile()
 
+	checkPath("backup")
+
 	zf = zipfile.ZipFile("{0}{1}{2}{3}".format("backup", getFileSeparator(), nameFile, ".zip"), "w")
 	for dirname, subdirs, files in os.walk("{0}".format(path)):
 		zf.write(dirname)
