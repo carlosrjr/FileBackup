@@ -25,9 +25,10 @@ def gerenciaConexoes(lista_ips):
 	last_thread = 0;
 	wait_thread = 0;
 
-	for dados in lista_ips:
-		dados = dados.split("#")
-		thread = threading.Thread(target=backupDados, args=(dados[0], dados[1], 0,))
+	for lista in lista_ips:
+		dados = lista.split(";")
+		print(dados)
+		thread = threading.Thread(target=backupDados, args=(dados[0], dados[1].replace("\r", ""), 0,))
 		threads.append(thread)
 
 	while(last_thread < len(threads)):
@@ -38,7 +39,7 @@ def gerenciaConexoes(lista_ips):
 			last_thread += 1
 
 		for count in range(size):
-			threads[wait_thread].join()
+			threads[wait_thread].join(2)
 			wait_thread += 1
 
 '''
@@ -51,9 +52,9 @@ def backupDados(ip, password, attempt):
 	try:
 		clientSocket = getTCPConnection(ip, 23000) # Tenta estabelecer uma conexão com um host
 
-		clientSocket.send(password)
+		clientSocket.send(bytes(password.encode().strip()))
 
-		ok = clientSocket.recv(1024)
+		ok = clientSocket.recv(1024).decode("utf-8")
 		if(ok == "Conectado!"):
 			getFile(clientSocket) # Tenta realizar backup do arquivo
 		else:
@@ -87,8 +88,8 @@ def getTCPConnection(ip, port):
 '''
 def getFile(clientSocket):
 	nomeDispositivo, data, checksum_md5_servidor, dados = getFileProperty(clientSocket) # Recebe o nome do arquivo do servidor
-	
-	fileName = "{0}#{1}".format(nomeDispositivo, data)
+
+	fileName = "{0}:{1}".format(nomeDispositivo, data)
 	
 
 	f = open("{0}.zip".format(fileName), "wb") # Gerando arquivo que será recebido no diretorio
@@ -105,21 +106,14 @@ def getFile(clientSocket):
 	checksum_md5_cliente = hashlib.md5(f.read()).hexdigest() # Gera checksum md5 do arquivo de backup obtido.
 	f.close() # Fechando o arquivo
 
-	'''
-	print("{0}: {1}".format(nomeDispositivo, checksum_md5_servidor.encode("utf-8")))
-	print("{0}: {1}".format(nomeDispositivo, checksum_md5_cliente))
-	'''
-	# Verificando se o arquivo chegou íntegro a partir do checksum md5
-	'''
-	if(checksum_md5_servidor == checksum_md5_cliente):
-		print("igual")
-	'''
 '''
 	Recebe nome do computador e a data que o arquivo foi gerado
 	para ser gravado no diretório de backup
 '''
 def getFileProperty(clientSocket):
-	json_dados = clientSocket.recv(1024)
+	json_dados = clientSocket.recv(1024).decode("utf-8")
+
+	clientSocket.send(bytes("ok".encode("utf-8")))
 
 	dados = json.loads(json_dados)
 
