@@ -12,7 +12,7 @@ def main():
 
 	try:
 		# Gera key
-		keyConnect = hashlib.md5("123456".encode("utf-8")).hexdigest()
+		keyConnect = hashlib.md5("123456".encode("utf-8").strip()).hexdigest()
 		print ("Senha de Conexão: " + keyConnect)
 
 		serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,11 +22,11 @@ def main():
 		print("Servidor aguardando conexão!")
 
 		connectionSocket, addr = serverSocket.accept()
-		keyServer = connectionSocket.recv(1024)
+		keyServer = connectionSocket.recv(1024).decode("utf-8")
 		print ("Senha do Server: " + keyServer)
 
 		if (keyConnect == keyServer):
-			connectionSocket.send("Conectado!")
+			connectionSocket.send(bytes("Conectado!".encode("utf-8").strip()))
 
 			# Abrindo arquivo para obter o checksum md5
 			arquivo = open("{0}{1}{2}{3}".format("backup",getFileSeparator(), getNameFile(), ".zip"), "rb")
@@ -38,9 +38,9 @@ def main():
 			arquivo.close()
 
 			dados = {
-				"ip" : "{0}".format(socket.gethostbyname(socket.gethostname())),
+				#"ip" : "{0}".format(socket.gethostbyname(socket.gethostname())),
 				"porta": serverPort,
-				"host_name": "linux01",
+				"host_name": "linux20",
 				"name_file": "{0}".format(getNameFile()),
 				"checksum_md5": checksum_md5,
 				"date": time.strftime("%d-%m-%Y"),
@@ -48,15 +48,17 @@ def main():
 			}
 
 			json_dados = json.dumps(dados)
-			connectionSocket.send(json_dados)
+			print(json_dados)
+			connectionSocket.send(bytes(json_dados.encode().strip()))
 
+			connectionSocket.recv(1024).decode("utf-8")
 			# Abrindo arquivo para enviar
 			arquivo = open("backup{0}{1}{2}".format(getFileSeparator(), getNameFile(), ".zip"), "rb")
 
 			# Lendo os primeiros bytes do arquivo
 			l = arquivo.read(1024)
 			while(l):
-				connectionSocket.send(l)
+				connectionSocket.send(bytes(l))
 				l = arquivo.read(1024)
 
 			# Fechando o arquivo
