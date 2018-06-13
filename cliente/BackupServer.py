@@ -38,7 +38,7 @@ def main():
 			arquivo.close()
 
 			dados = {
-				#"ip" : "{0}".format(socket.gethostbyname(socket.gethostname())),
+				"ip" : "{0}".format(get_ip_address()),
 				"porta": serverPort,
 				"host_name": "linux20",
 				"name_file": "{0}".format(getNameFile()),
@@ -69,6 +69,11 @@ def main():
 	except (KeyboardInterrupt, SystemExit):
 		if(connectionSocket != None):
 			connectionSocket.close()
+
+def get_ip_address():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    return s.getsockname()[0]
 
 if __name__ == "__main__":
 	main()
