@@ -1,5 +1,5 @@
 # coding: utf-8
-import socket, os, sys, hashlib, json, time
+import socket, os, sys, hashlib, json, time, zipfile
 from GeraArquivoBackup import getFileSeparator, getNameFile, createZipFile, getDefaultPath, checkPath
 
 serverPort = 23000
@@ -102,9 +102,16 @@ def gera_log(ip, porta):
 	if(checkPath("log")):
 		connection_log = open("{0}{1}{2}".format("logs", getFileSeparator(), "connection.log"))
 
-	log = "["time.strftime("%d-%m-%Y") " - " "] time.strftime("%H-%M-%S") - "ip":"porta
+	logData = "[{0} - {1} - {2}:{3}]{4}".format(time.strftime("%d-%m-%Y"), time.strftime("%H-%M-%S"),ip, porta, '\n\t'.join(get_zip_files))
 
-	connection_log.write(log)
+	connection_log.write(logData)
+
+def get_zip_files():
+	zf = zipfile.ZipFile("backup{0}{1}{2}".format(getFileSeparator(), getNameFile(), ".zip"))
+	arquivos_list[] = zf.namelist()
+
+	return arquivos_list
+
 
 if __name__ == "__main__":
 	main()
