@@ -8,20 +8,17 @@ def main():
 	connectionSocket = None
 
 	if(checkPath("log")):
-		connectionLog = open("{0}{1}{2}".format("logs", getFileSeparator(), "connection.log"))
+		connection_log = open("{0}{1}{2}".format("logs", getFileSeparator(), "connection.log"))
 
 	try:
 		# Gera key
 		keyConnect = hashlib.md5("123456".encode("utf-8").strip()).hexdigest()
-		print ("Senha de Conexão: " + keyConnect)
+		#print ("Senha de Conexão: " + keyConnect)
 
-		serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		serverSocket.bind(("",serverPort))
-		serverSocket.listen(1)
+		connectionSocket = get_connection()
 
 		print("Servidor aguardando conexão!")
 
-		connectionSocket, addr = serverSocket.accept()
 		keyServer = connectionSocket.recv(1024).decode("utf-8")
 		print ("Senha do Server: " + keyServer)
 
@@ -74,6 +71,14 @@ def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     return s.getsockname()[0]
+
+def get_connection:
+	serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	serverSocket.bind(("",serverPort))
+	serverSocket.listen(1)
+	connectionSocket, addr = serverSocket.accept()
+
+	return connectionSocket
 
 if __name__ == "__main__":
 	main()

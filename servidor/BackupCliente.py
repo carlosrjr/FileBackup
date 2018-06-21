@@ -90,7 +90,7 @@ def getFile(clientSocket):
 	nomeDispositivo, data, checksum_md5_servidor, dados = getFileProperty(clientSocket) # Recebe o nome do arquivo do servidor
 
 	fileName = "{0}:{1}".format(nomeDispositivo, data)
-	
+
 
 	f = open("{0}.zip".format(fileName), "wb") # Gerando arquivo que será recebido no diretorio
 
