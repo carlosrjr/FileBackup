@@ -1,8 +1,12 @@
-arquivo_ips.txt
 backup/
 log/
 cliente/*.fbk
 cliente/backup/
 cliente/log/
+cliente/__pycache__
+cliente/*.pyc
 servidor/backup/
 servidor/log/
+servidor/*.pyc
+servidor/*.zip
+servidor/arquivo_ips.txt

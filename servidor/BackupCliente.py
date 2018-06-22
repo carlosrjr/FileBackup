@@ -13,14 +13,17 @@ import socket, hashlib, time, threading, json
 	version 0.1
 '''
 def main():
+	# create logs files
+	arquivo_log_conexao = open("logs/log_conexao.log")
+
 	# Obtem lista de endereços ip dos hosts que participaram do backup
 	arquivo_ips = open("arquivo_ips.txt", "r")
 	lista_ips = arquivo_ips.read().split("\n");
 	arquivo_ips.close()
 
-	gerenciaConexoes(lista_ips)
+	gerenciaConexoes(lista_ips, arquivo_log_conexao)
 
-def gerenciaConexoes(lista_ips):
+def gerenciaConexoes(lista_ips, arquivo_log_conexao):
 	threads = []
 	last_thread = 0;
 	wait_thread = 0;
@@ -28,7 +31,7 @@ def gerenciaConexoes(lista_ips):
 	for lista in lista_ips:
 		dados = lista.split(";")
 		print(dados)
-		thread = threading.Thread(target=backupDados, args=(dados[0], dados[1].replace("\r", ""), 0,))
+		thread = threading.Thread(target=backupDados, args=(dados[0], dados[1].replace("\r", ""), 0, arquivo_log_conexao,))
 		threads.append(thread)
 
 	while(last_thread < len(threads)):
@@ -47,8 +50,9 @@ def gerenciaConexoes(lista_ips):
 	a partir de um endereço ip que está na lista de ips e usando
 	a porta default definida 21000.
 '''
-def backupDados(ip, password, attempt):
-	print("ip: {0}    password: {1}    attempt: {2}".format(ip, password, attempt))
+def backupDados(ip, password, attempt, arquivo_log_conexao):
+	arquivo_log_conexao.write("[{0} {1}] ip: {2} attempt: {4}\n".format(time.strftime("%H-%M-%S"), time.strftime("%d-%m-%Y"), ip, attempt,))
+
 	try:
 		clientSocket = getTCPConnection(ip, 23000) # Tenta estabelecer uma conexão com um host
 
@@ -90,7 +94,7 @@ def getFile(clientSocket):
 	nomeDispositivo, data, checksum_md5_servidor, dados = getFileProperty(clientSocket) # Recebe o nome do arquivo do servidor
 
 	fileName = "{0}:{1}".format(nomeDispositivo, data)
-	
+
 
 	f = open("{0}.zip".format(fileName), "wb") # Gerando arquivo que será recebido no diretorio
 
