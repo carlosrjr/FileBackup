@@ -1,79 +1,105 @@
 # coding: utf-8
 import socket, os, sys, hashlib, json, time, zipfile
+
+# Importando métodos da classe gerar_arquivo_backup
 from GeraArquivoBackup import getFileSeparator, getNameFile, createZipFile, getDefaultPath, checkPath
 
-serverPort = 23000
+# Porta default do FileBackup
+server_port = 23000
 
+'''
+	Este BackupServer.py estará em execução em cada host
+	cliente em que o servidor irá realizar o backup.
+'''
 def main():
-	connectionSocket = None
+	# Inicializando o connection_socket como nulo.
+	connection_socket = None
 
 	try:
-		# Gera key
-		keyConnect = hashlib.md5("123456".encode("utf-8").strip()).hexdigest()
-		#print ("Senha de Conexão: " + keyConnect)
+		# Gera a senha de conexão
+		key_connect = hashlib.md5("123456".encode("utf-8").strip()).hexdigest()
 
-		connectionSocket = get_connection()
+		# Obtém a conexão com o servidor de backup, caso contrário recebe None.
+		connection_socket = get_connection()
 
-		if (connectionSocket):
+		# Verificando se a conexão foi estabelecida.
+		if (connection_socket):
+			# recebendo a chave de conexão do cliente.
+			key_server = connection_socket.recv(1024).decode("utf-8")
 
-			print("Servidor aguardando conexão!")
+			#print ("Senha do Server: " + keyServer)
 
-			keyServer = connectionSocket.recv(1024).decode("utf-8")
-			print ("Senha do Server: " + keyServer)
+			# Verificando a chave do servidor de backup
+			if (key_connect == key_server):
+				# Enviando mensagem de acesso autorizado para o servidor de backup.
+				connection_socket.send(bytes("Conectado!".encode("utf-8").strip()))
 
-			if (keyConnect == keyServer):
-				connectionSocket.send(bytes("Conectado!".encode("utf-8").strip()))
+				# Obtendo propriedades do host e dos arquivos
+				dados = get_property()
 
-				checksum_md5 = get_md5()
-
-				dados = get_data()
-
+				# Transformando o dicionário para um objeto json para ser enviado ao servidor de backup.
 				json_dados = json.dumps(dados)
 
-				print(json_dados)
+				# Enviando os dados do host e do arquivo para o servidor de backup.
+				send_property(connection_socket, json_dados)
 
-				connectionSocket.send(bytes(json_dados.encode().strip()))
-
-				connectionSocket.recv(1024).decode("utf-8")
-				# Abrindo arquivo para enviar
-				arquivo = open("backup{0}{1}{2}".format(getFileSeparator(), getNameFile(), ".zip"), "rb")
-
-				# Lendo os primeiros bytes do arquivo
-				l = arquivo.read(1024)
-				while(l):
-					connectionSocket.send(bytes(l))
-					l = arquivo.read(1024)
-
-				# Fechando o arquivo
-				arquivo.close()
+				# Enviando o arquivo zip para o servidor de backup
+				send_file(connection_socket)
 
 				# Gera o arquivo de relatório.
 				gera_log(dados["ip"], dados["porta"])
 
 			# Finalizando a conexão
-			connectionSocket.close()
+			connection_socket.close()
 
 	except (KeyboardInterrupt, SystemExit):
-		if(connectionSocket != None):
-			connectionSocket.close()
+		# verificando se há conexão estabelecida pra fechar.
+		if(connection_socket != None):
+			connection_socket.close()
 
+'''
+	Estabelece uma conexão com o google-open-dns
+	para obter o ip do host.
+'''
 def get_ip_address():
+	# Definindo socket IPv4 UDP
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+	#conectando ao google-open-dns na HTTP(80)
     s.connect(("8.8.8.8", 80))
+
+	# retornando o ip do host
     return s.getsockname()[0]
 
+'''
+	Cria um socket server TCP que ficará aguardado a conexão com
+	o servidor de backup. Retorna a conexão se for bem sucedidaself.
+	caso contrário, irá gerar uma exceção.
+'''
 def get_connection():
 	try:
-		serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		serverSocket.bind(("",serverPort))
-		serverSocket.listen(1)
-		connectionSocket, addr = serverSocket.accept()
+		# definindo o socket IPv4 TCP
+		server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-		return connectionSocket
+		# Realizando o bind na porta default 23000
+		server_socket.bind(("",server_port))
+
+		# Definindo o número de conexões que o socket estará escutando.
+		server_socket.listen(1)
+
+		print("Servidor aguardando conexão!")
+
+		# Aguardando a conexão com o servidor de backup
+		connection_socket, addr = server_socket.accept()
+
+		# Retorna a conexão caso tenha sido bem sucedida.
+		return connection_socket
+
 	except (socket.error, socket.herror, socket.gaierror, socket.timeout):
-		return null
+		return None
 
-def get_md5():
+# Gera o checksum_md5 do conteudo arquivo zip.
+def get_zip_md5():
 	# Abrindo arquivo para obter o checksum md5
 	arquivo = open("{0}{1}{2}{3}".format("backup",getFileSeparator(), getNameFile(), ".zip"), "rb")
 
@@ -83,20 +109,28 @@ def get_md5():
 	# Fechando o arquivo
 	arquivo.close()
 
+	# retornando o checksum_md5 do conteudo arquivo zip
 	return checksum_md5
 
-def get_data():
+'''
+	Obtém as propriedades do host e do arquivo zip para realizar
+	a verificação do arquivo no servidor.
+'''
+def get_property():
+	# Armazenando em um dicionário os dados.
 	dados = {
-		"ip" : "{0}".format(get_ip_address()),
-		"porta": serverPort,
-		"host_name": "linux20",
-		"name_file": "{0}".format(getNameFile()),
-		"checksum_md5": checksum_md5,
-		"date": time.strftime("%d-%m-%Y"),
-		"hour": time.strftime("%H-%M-%S")
+		"ip" : "{0}".format(get_ip_address()), # ip do host
+		"porta": server_port, # porta de conexão
+		"host_name": "linux20", # nome do host
+		"name_file": "{0}".format(getNameFile()), # nome do arquivo
+		"checksum_md5": get_zip_md5(), # checksum_md5 do arquivo zip.
+		"date": time.strftime("%d-%m-%Y"), # data de envio
+		"hour": time.strftime("%H-%M-%S") # hora de envio
 	}
 
+	# Retornando dicionário com os dados.
 	return dados
+
 
 def gera_log(ip, porta):
 	if(checkPath("log")):
@@ -106,12 +140,46 @@ def gera_log(ip, porta):
 
 	connection_log.write(logData)
 
+'''
+	Envia json com com as propriedades do host e do arquivo.
+	Recebe uma mensagem de confirmação do cliente.
+'''
+def send_property(connection_socket, json_dados):
+	# Enviando json com as propriedades do host e do arquivo.
+	connection_socket.send(bytes(json_dados.encode("utf-8").strip()))
+
+	# Recebendo mensagem de confirmação do recebindo do json
+	connection_socket.recv(1024).decode("utf-8")
+
+'''
+	Envia o arquivo para o cliente
+'''
+def send_file(connection_socket):
+	# Abrindo arquivo para enviar
+	arquivo = open("backup{0}{1}{2}".format(getFileSeparator(), getNameFile(), ".zip"), "rb")
+
+	# Lendo os primeiros bytes do arquivo
+	l = arquivo.read(1024)
+	# Continua enviando equanto houver dados do arquivo para ser lido e enviado.
+	while(l):
+		connection_socket.send(bytes(l))
+		l = arquivo.read(1024)
+
+	# Fechando o arquivo
+	arquivo.close()
+
+'''
+	Obtém a lista de arquivos do arquivo zip.
+'''
 def get_zip_files():
+	# Obtém o arquivo zip.
 	zf = zipfile.ZipFile("backup{0}{1}{2}".format(getFileSeparator(), getNameFile(), ".zip"))
+
+	# Obtém lista de arqivos do zip.
 	arquivos_list[] = zf.namelist()
 
+	# Retorna lista de arquivos do arquivo zip.
 	return arquivos_list
-
 
 if __name__ == "__main__":
 	main()
