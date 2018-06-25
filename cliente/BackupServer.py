@@ -46,8 +46,13 @@ def main():
 				# Enviando o arquivo zip para o servidor de backup
 				send_file(connection_socket)
 
+				if(checkPath("log")):
+					connection_log = open("{0}{1}{2}".format("logs", getFileSeparator(), "connection.log"))
+
+				logData = "[{0} - {1} - {2}:{3}]{4}".format(get_data(), get_hora(), dados["ip"], dados["porta"], '\n\t'.join(get_zip_files))
+
 				# Gera o arquivo de relatório.
-				gera_log(dados["ip"], dados["porta"])
+				gera_log(connection_log, logData)
 
 			# Finalizando a conexão
 			connection_socket.close()
@@ -132,13 +137,10 @@ def get_property():
 	return dados
 
 
-def gera_log(ip, porta):
-	if(checkPath("log")):
-		connection_log = open("{0}{1}{2}".format("logs", getFileSeparator(), "connection.log"))
+def gera_log(arquivo, mensagem):
+	logData = mensagem
 
-	logData = "[{0} - {1} - {2}:{3}]{4}".format(time.strftime("%d-%m-%Y"), time.strftime("%H-%M-%S"),ip, porta, '\n\t'.join(get_zip_files))
-
-	connection_log.write(logData)
+	arquivo.write(logData)
 
 '''
 	Envia json com com as propriedades do host e do arquivo.
@@ -175,11 +177,17 @@ def get_zip_files():
 	# Obtém o arquivo zip.
 	zf = zipfile.ZipFile("backup{0}{1}{2}".format(getFileSeparator(), getNameFile(), ".zip"))
 
-	# Obtém lista de arqivos do zip.
+	# Obtém lista de arquivos do zip.
 	arquivos_list[] = zf.namelist()
 
 	# Retorna lista de arquivos do arquivo zip.
 	return arquivos_list
+
+def get_data():
+	return time.strftime("%d-%m-%Y")
+
+def get_hora():
+	return time.strftime("%H-%M-%S")
 
 if __name__ == "__main__":
 	main()
