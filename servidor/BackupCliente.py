@@ -87,17 +87,26 @@ def backupDados(ip, password, attempt):
 			gravar_log(logs.CONNECTION_LOG.value, "Conexão estabelecida com {0} na porta {1}".format(ip, Connection.PORT.value))
 			getFile(clientSocket) # Tenta realizar backup do arquivo
 
-		clientSocket.close()
-		gravar_log(logs.CONNECTION_LOG.value, "Conexão finalizada com {0} na porta {1}".format(ip, Connection.PORT.value))
+			clientSocket.close()
+			gravar_log(logs.CONNECTION_LOG.value, "Conexão finalizada com {0} na porta {1}".format(ip, Connection.PORT.value))
 
-	except socket.timeout:
+	except(socket.timeout):
 		reconnect("O tempo de conexão excedeu o limite", attempt, ip, password)
-	except socket.error:
+	except(socket.error):
 		reconnect("Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede", attempt, ip, password)
-	except socket.herror:
+	except(socket.herror):
 		reconnect("Há um problema com o endereço do host", attempt, ip, password)
-	except socket.gaierror:
+	except(socket.gaierror):
 		reconnect("Erro ao conectar", attempt, ip, password)
+	except(ConnectionAbortedError):
+		gravar_log(logs.CONNECTION_LOG.value, "A Conexão foi abortada com {0}".format(ip))
+		clientSocket.close()
+	except(ConnectionRefusedError):
+		gravar_log(logs.CONNECTION_LOG.value, "A Conexão foi recusada com {0}".format(ip))
+		clientSocket.close()
+	except(ConnectionResetError):
+		gravar_log(logs.CONNECTION_LOG.value, "A Conexão foi reiniciada com {0}".format(ip))
+		clientSocket.close()
 
 '''
 	Estabelece uma conexão TCP com um host
@@ -133,7 +142,7 @@ def getFile(clientSocket):
 
 	f.close() # Fechando o arquivo
 
-	f = open("{0}.zip".format(fileName), "rb") # Abrindo o arquivo em modo leitura para obter o checksum md5 do conteudo
+	f = open("backups/{0}.zip".format(fileName), "rb") # Abrindo o arquivo em modo leitura para obter o checksum md5 do conteudo
 	checksum_md5_cliente = hashlib.md5(f.read()).hexdigest() # Gera checksum md5 do arquivo de backup obtido.
 	f.close() # Fechando o arquivo
 
@@ -186,7 +195,7 @@ def gravar_log(arquivo, mensagem):
 	Obtém a data do sistema.
 '''
 def get_data():
-	return time.strftime("%d-%m-%Y")
+	return time.strftime("%d/%m/%Y")
 
 '''
 	Obtém a hora do sistema.
@@ -204,6 +213,7 @@ class Connection(enum.Enum):
 
 class logs(enum.Enum):
 	CONNECTION_LOG = "logs/connection.log"
+	FILE_LOG = "logs/files.log"
 
 if __name__ == "__main__":
 	main()
