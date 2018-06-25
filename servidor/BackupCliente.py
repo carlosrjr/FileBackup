@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import socket, hashlib, time, threading, json, enum
+import socket, hashlib, time, threading, json, enum, os
 
 '''
 	Obtém todos os backups de todos os hosts cadastrados.
@@ -16,8 +16,8 @@ import socket, hashlib, time, threading, json, enum
 	version 0.1
 '''
 def main():
-	# Cria os arquivos de logs
-	connection_file_log = open("logs/connection_log.log")
+	# Verificando diretórios
+	checkPath("logs");
 
 	# Obtém o conteudo do arquivo de endereços ip dos hosts que participarão do backup.
 	file_ip = open("file_ip.txt", "r")
@@ -29,7 +29,7 @@ def main():
 	file_ip.close()
 
 	# Inicia o gerenciamento de conexões.
-	ConnectionsManager(list_ip, connection_file_log)
+	ConnectionsManager(list_ip)
 
 '''
 	Gerencia os conexões com os clientes realizando a conexão
@@ -38,47 +38,43 @@ def main():
 	o número de conexões definido no enum Connection.NUMBER_THREAD por
 	vez.
 '''
-def ConnectionsManager(list_ip, connection_file_log):
+def ConnectionsManager(list_ip):
 	threads = [] # Array com as threads dos usuários
 	last_thread = 0; # Útima Thread que foi executada.
 	wait_thread = 0; # Número da Thread esperando.
 
 	# Verificando se a lista de hosts não está vazia.
 	if(len(list_ip) > 0):
-		for list in list_ip:
-			dados = list.split(";")
-			#print(dados)
+		for lista in list_ip:
+			if(lista != ''):
+				dados = lista.split(";")
+				print(dados)
+				if(len(dados) == 2):
+					# Inicializando as Threads.
+					thread = threading.Thread(target=backupDados, args=(dados[0], dados[1].replace("\r", ""), 0,))
 
-			# Inicializando as Threads.
-			thread = threading.Thread(target=backupDados, args=(dados[0], dados[1].replace("\r", ""), 0, connection_file_log,))
+					# Adicionando a nova Thread na lista de Threads.
+					threads.append(thread)
 
-			# Adicionando a nova Thread na lista de Threads.
-			threads.append(thread)
+	# Verificando qual foi a última thread executada. Caso já tenha executado todas, finaliza a execução.
+	while(last_thread < len(threads)):
+		size = (len(threads)-last_thread) if (len(threads)-last_thread) < Connection.NUMBER_THREAD.value else Connection.NUMBER_THREAD.value
 
-		# Verificando qual foi a última thread executada. Caso já tenha executado todas, finaliza a execução.
-		while(last_thread < len(threads)):
-			size = (len(threads)-last_thread) if (len(threads)-last_thread) < Connection.NUMBER_THREAD else Connection.NUMBER_THREAD
+		for count in range(size):
+			threads[last_thread].start()
+			last_thread += 1
 
-			for count in range(size):
-				threads[last_thread].start()
-				last_thread += 1
+		for count in range(size):
+			threads[wait_thread].join()
+			wait_thread += 1
 
-			for count in range(size):
-				threads[wait_thread].join(2)
-				wait_thread += 1
-
-'''
-	Obtém a conexão com host e tenta realizar o backup do arquivo
-	a partir de um endereço ip que está na lista de ips e usando
-	a porta default definida no enum Connection.PORT.
-'''
-def backupDados(ip, password, attempt, connection_file_log):
-	# Registrando no log de conexão a data, hora, host e número da tentativa de estabelecimento de conexão
-	gravar_log(connection_file_log, "IP: {0} attempt: {1}", ip, attempt)
-
+def backupDados(ip, password, attempt):
 	try:
+		# Resgistrando log
+		gravar_log(logs.CONNECTION_LOG.value, "IP: {0} Porta: {1} Tentativa: {2}".format(ip, Connection.PORT.value, attempt))
+
 		# Tentando estabelecer conexão.
-		clientSocket = get_tpc_Connection(ip, Connection.PORT) # Tenta estabelecer uma conexão com um host
+		clientSocket = get_tpc_Connection(ip, Connection.PORT.value) # Tenta estabelecer uma conexão com um host
 
 		# Enviando senha de conexão
 		clientSocket.send(bytes(password.encode().strip()))
@@ -95,13 +91,13 @@ def backupDados(ip, password, attempt, connection_file_log):
 		clientSocket.close()
 
 	except socket.timeout:
-		reconnect("O tempo de conexão excedeu o limite.", attempt, ip, password)
+		reconnect("O tempo de conexão excedeu o limite", attempt, ip, password)
 	except socket.error:
-		reconnect("Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede.", attempt, ip, password)
+		reconnect("Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede", attempt, ip, password)
 	except socket.herror:
-		reconnect("Há um problema com o endereço do host.", attempt, ip, password)
+		reconnect("Há um problema com o endereço do host", attempt, ip, password)
 	except socket.gaierror:
-		reconnect("Erro ao conectar.", attempt, ip, password)
+		reconnect("Erro ao conectar", attempt, ip, password)
 
 '''
 	Estabelece uma conexão TCP com um host
@@ -123,10 +119,10 @@ def get_tpc_Connection(ip, port):
 '''
 def getFile(clientSocket):
 	# Obténdo dados do host e do arquivo
-	nomeDispositivo, data, checksum_md5_servidor, dados = getFileProperty(clientSocket) # Recebe o nome do arquivo do servidor
+	nomeDispositivo, ip, data, checksum_md5_servidor, dados = getFileProperty(clientSocket) # Recebe o nome do arquivo do servidor
 
 	# Definindo nome do arquivo
-	fileName = "{0}:{1}".format(nomeDispositivo, data)
+	fileName = "{0}:{1}".format(ip, data)
 
 	f = open("{0}.zip".format(fileName), "wb") # Gerando arquivo que será recebido no diretorio
 
@@ -158,8 +154,9 @@ def getFileProperty(clientSocket):
 	nomeDispositivo = dados["host_name"]
 	data = dados["date"]
 	checksum_md5 = dados["checksum_md5"]
+	ip = dados["ip"]
 
-	return nomeDispositivo, data, checksum_md5, dados
+	return nomeDispositivo, ip, data, checksum_md5, dados
 
 '''
 	Verificando se diretório existe. Caso não exista, tenta criar.
@@ -173,15 +170,17 @@ def checkPath(path):
 	O número máximo de reconexão permitida é de Connection.RECONNECT.
 '''
 def reconnect(message, attempt, ip, password):
-	gravar_log("{0}: {1}".format(ip, message))
-	if(attempt < Connection.RECONNECT):
+	gravar_log(logs.CONNECTION_LOG.value, "{0}: {1}".format(ip, message))
+	if(attempt < Connection.RECONNECT.value):
 		backupDados(ip, password, attempt+1)
 
 '''
 	Registra em log uma mensagem.
 '''
 def gravar_log(arquivo, mensagem):
-	arquivo.write("[{0} {1}]: {2}.\n".format(get_data, get_hora, mensagem))
+	file_log = open(arquivo, "a+")
+
+	file_log.write("[{0} {1}]: {2}.\n".format(get_data(), get_hora(), mensagem))
 
 '''
 	Obtém a data do sistema.
@@ -199,9 +198,12 @@ def get_hora():
 	Enum definido para armazenar dados sobre a conexão.
 '''
 class Connection(enum.Enum):
-    NUMBER_THREAD = 2
-	PORT = 23000
+	NUMBER_THREAD = 2
 	RECONNECT = 2
+	PORT = 23000
+
+class logs(enum.Enum):
+	CONNECTION_LOG = "logs/connection.log"
 
 if __name__ == "__main__":
 	main()
