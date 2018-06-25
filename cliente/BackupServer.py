@@ -8,6 +8,7 @@ from GeraArquivoBackup import getFileSeparator, getNameFile, createZipFile, getD
 server_port = 23000
 
 connection_log = "{0}{1}{2}".format("log", getFileSeparator(), "connection.log")
+history_log = "{0}{1}{2}".format("log", getFileSeparator(), "connection_history.log")
 
 '''
 	Este BackupServer.py estará em execução em cada host
@@ -26,40 +27,53 @@ def main():
 
 		# Verificando se a conexão foi estabelecida.
 		if (connection_socket):
-			# recebendo a chave de conexão do cliente.
-			key_server = connection_socket.recv(1024).decode("utf-8")
 
-			#print ("Senha do Server: " + keyServer)
+			try:
+				# recebendo a chave de conexão do cliente.
+				key_server = connection_socket.recv(1024).decode("utf-8")
 
-			# Verificando a chave do servidor de backup
-			if (key_connect == key_server):
-				if (os.path.exists("{0}{1}{2}{3}".format("backup",getFileSeparator(), getNameFile(), ".zip"))):
-					# Enviando mensagem de acesso autorizado para o servidor de backup.
-					connection_socket.send(bytes("Conectado!".encode("utf-8").strip()))
+				# Gravando a informação sobre a conexão no histórico.
+				history_data = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "Conexão estabelecida com sucesso!")
+				gera_log(history_log, history_data)
 
-					# Obtendo propriedades do host e dos arquivos
-					dados = get_property()
+				#print ("Senha do Server: " + keyServer)
 
-					# Transformando o dicionário para um objeto json para ser enviado ao servidor de backup.
-					json_dados = json.dumps(dados)
+				# Verificando a chave do servidor de backup
+				if (key_connect == key_server):
+					if (os.path.exists("{0}{1}{2}{3}".format("backup",getFileSeparator(), getNameFile(), ".zip"))):
+						# Enviando mensagem de acesso autorizado para o servidor de backup.
+						connection_socket.send(bytes("Conectado!".encode("utf-8").strip()))
 
-					# Enviando os dados do host e do arquivo para o servidor de backup.
-					send_property(connection_socket, json_dados)
+						# Obtendo propriedades do host e dos arquivos
+						dados = get_property()
 
-					# Enviando o arquivo zip para o servidor de backup
-					send_file(connection_socket)
+						# Transformando o dicionário para um objeto json para ser enviado ao servidor de backup.
+						json_dados = json.dumps(dados)
 
-					if(checkPath("log")):
-						logData = "\n[{0} - {1} - {2}:{3}]\n\t{4}".format(get_data(), get_hora(), dados["ip"], dados["porta"], '\n\t'.join(get_zip_files()))
+						# Enviando os dados do host e do arquivo para o servidor de backup.
+						send_property(connection_socket, json_dados)
 
-						# Gera o arquivo de relatório.
-						gera_log(connection_log, logData)
+						# Enviando o arquivo zip para o servidor de backup
+						send_file(connection_socket)
 
-				else:
-					print("Não foram encontrados arquivos de backup!")
+						if(checkPath("log")):
+							logData = "\n[{0} - {1} - {2}:{3}]\n\t{4}".format(get_data(), get_hora(), dados["ip"], dados["porta"], '\n\t'.join(get_zip_files()))
 
-			# Finalizando a conexão
-			connection_socket.close()
+							# Gera o arquivo de relatório.
+							gera_log(connection_log, logData)
+					else:
+						print("Não foram encontrados arquivos de backup!")
+
+				# Finalizando a conexão
+				connection_socket.close()
+
+			except (socket.herror, socket.gaierror, socket.error):
+				history_data = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "Ocorreu um erro no estabelecimento da conexão.")
+				gera_log(history_log, history_data)
+			except (socket.timeout):
+				history_data = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "O tempo limite para estabelecimento de conexão foi atingido.")
+				gera_log(history_log, history_data)
+
 
 	except (KeyboardInterrupt, SystemExit):
 		# verificando se há conexão estabelecida pra fechar.
@@ -157,7 +171,7 @@ def send_property(connection_socket, json_dados):
 	# Recebendo mensagem de confirmação do recebindo do json
 	connection_socket.recv(1024).decode("utf-8")
 
-'''
+'''cliente
 	Envia o arquivo para o cliente
 '''
 def send_file(connection_socket):
@@ -185,7 +199,6 @@ def send_file(connection_socket):
 	except (ConnectionRefusedError):
 		gera_log(connection_log,"Erro no envio do(s) arquivo(s). Conexão recusada pelo cliente.")
 		connection_socket.close()
-
 
 '''
 	Obtém a lista de arquivos do arquivo zip.
