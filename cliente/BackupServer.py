@@ -7,6 +7,8 @@ from GeraArquivoBackup import getFileSeparator, getNameFile, createZipFile, getD
 # Porta default do FileBackup
 server_port = 23000
 
+connection_log = "{0}{1}{2}".format("log", getFileSeparator(), "connection.log")
+
 '''
 	Este BackupServer.py estará em execução em cada host
 	cliente em que o servidor irá realizar o backup.
@@ -48,8 +50,7 @@ def main():
 					send_file(connection_socket)
 
 					if(checkPath("log")):
-						connection_log = "{0}{1}{2}".format("log", getFileSeparator(), "connection.log")
-						logData = "[{0} - {1} - {2}:{3}]\n\t{4}".format(get_data(), get_hora(), dados["ip"], dados["porta"], '\n\t'.join(get_zip_files()))
+						logData = "\n[{0} - {1} - {2}:{3}]\n\t{4}".format(get_data(), get_hora(), dados["ip"], dados["porta"], '\n\t'.join(get_zip_files()))
 
 						# Gera o arquivo de relatório.
 						gera_log(connection_log, logData)
@@ -160,18 +161,31 @@ def send_property(connection_socket, json_dados):
 	Envia o arquivo para o cliente
 '''
 def send_file(connection_socket):
-	# Abrindo arquivo para enviar
-	arquivo = open("backup{0}{1}{2}".format(getFileSeparator(), getNameFile(), ".zip"), "rb")
+	try:
+		# Abrindo arquivo para enviar
+		arquivo = open("backup{0}{1}{2}".format(getFileSeparator(), getNameFile(), ".zip"), "rb")
 
-	# Lendo os primeiros bytes do arquivo
-	l = arquivo.read(1024)
-	# Continua enviando equanto houver dados do arquivo para ser lido e enviado.
-	while(l):
-		connection_socket.send(bytes(l))
+		# Lendo os primeiros bytes do arquivo
 		l = arquivo.read(1024)
 
-	# Fechando o arquivo
-	arquivo.close()
+		# Continua enviando equanto houver dados do arquivo para ser lido e enviado.
+		while(l):
+			connection_socket.send(bytes(l))
+			l = arquivo.read(1024)
+
+		# Fechando o arquivo
+		arquivo.close()
+
+	except (ConnectionResetError):
+		gera_log(connection_log,"Erro no envio do(s) arquivo(s). Conexão reiniciada pelo cliente.")
+		connection_socket.close()
+	except (ConnectionAbortedError):
+		gera_log(connection_log,"Erro no envio do(s) arquivo(s). Conexão abortada pelo cliente.")
+		connection_socket.close()
+	except (ConnectionRefusedError):
+		gera_log(connection_log,"Erro no envio do(s) arquivo(s). Conexão recusada pelo cliente.")
+		connection_socket.close()
+
 
 '''
 	Obtém a lista de arquivos do arquivo zip.
@@ -186,11 +200,17 @@ def get_zip_files():
 	# Retorna lista de arquivos do arquivo zip.
 	return arquivos_list
 
+'''
+	Obtém a data do sistema (dd/mm/aaaa)
+'''
 def get_data():
-	return time.strftime("%d-%m-%Y")
+	return time.strftime("%d/%m/%Y")
 
+'''
+	Obtém a hora do sistema (hh:mm:ss)
+'''
 def get_hora():
-	return time.strftime("%H-%M-%S")
+	return time.strftime("%H:%M:%S")
 
 if __name__ == "__main__":
 	main()
