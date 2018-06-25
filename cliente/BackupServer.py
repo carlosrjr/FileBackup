@@ -62,17 +62,19 @@ def main():
 							# Gera o arquivo de relatório.
 							gera_log(connection_log, logData)
 					else:
-						print("Não foram encontrados arquivos de backup!")
+						print("Não foi encontrado arquivo de backup.")
 
 				# Finalizando a conexão
 				connection_socket.close()
 
 			except (socket.herror, socket.gaierror, socket.error):
 				history_data = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "Ocorreu um erro no estabelecimento da conexão.")
-				gera_log(history_log, history_data)
+				if(checkPath("log")):
+					gera_log(history_log, history_data)
 			except (socket.timeout):
 				history_data = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "O tempo limite para estabelecimento de conexão foi atingido.")
-				gera_log(history_log, history_data)
+				if(checkPath("log")):
+					gera_log(history_log, history_data)
 
 
 	except (KeyboardInterrupt, SystemExit):
