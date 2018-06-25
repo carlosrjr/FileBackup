@@ -1,8 +1,9 @@
 # coding: utf-8
 
-import sys, zipfile, os
+import sys, zipfile, os, time
 
 def main():
+	checkPath("log")
 	try:
 		path = "files"
 		checkPath(path)
@@ -34,6 +35,14 @@ def createZipFile(path):
 		for filename in files:
 			zf.write(os.path.join(dirname, filename))
 
+
+	connection_log = "{0}{1}{2}".format("log", getFileSeparator(), "connection.log")
+
+	logData = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "Criação do aquivo zip.")
+
+	# Gera o arquivo de relatório.
+	gera_log(connection_log, logData)
+
 	zf.close()
 
 def getNameFile():
@@ -52,6 +61,24 @@ def checkPath(path):
 		os.system("mkdir {0}".format(path))
 
 	return True
+
+
+def gera_log(arquivo, mensagem):
+	connection_log = open(arquivo,"a+")
+
+	connection_log.write(mensagem)
+
+'''
+	Obtém a data do sistema (dd/mm/aaaa)
+'''
+def get_data():
+	return time.strftime("%d/%m/%Y")
+
+'''
+	Obtém a hora do sistema (hh:mm:ss)
+'''
+def get_hora():
+	return time.strftime("%H:%M:%S")
 
 if __name__ == "__main__":
 	main()
