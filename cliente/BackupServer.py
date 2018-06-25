@@ -31,28 +31,31 @@ def main():
 
 			# Verificando a chave do servidor de backup
 			if (key_connect == key_server):
-				# Enviando mensagem de acesso autorizado para o servidor de backup.
-				connection_socket.send(bytes("Conectado!".encode("utf-8").strip()))
+				if (os.path.exists("{0}{1}{2}{3}".format("backup",getFileSeparator(), getNameFile(), ".zip"))):
+					# Enviando mensagem de acesso autorizado para o servidor de backup.
+					connection_socket.send(bytes("Conectado!".encode("utf-8").strip()))
 
-				# Obtendo propriedades do host e dos arquivos
-				dados = get_property()
+					# Obtendo propriedades do host e dos arquivos
+					dados = get_property()
 
-				# Transformando o dicionário para um objeto json para ser enviado ao servidor de backup.
-				json_dados = json.dumps(dados)
+					# Transformando o dicionário para um objeto json para ser enviado ao servidor de backup.
+					json_dados = json.dumps(dados)
 
-				# Enviando os dados do host e do arquivo para o servidor de backup.
-				send_property(connection_socket, json_dados)
+					# Enviando os dados do host e do arquivo para o servidor de backup.
+					send_property(connection_socket, json_dados)
 
-				# Enviando o arquivo zip para o servidor de backup
-				send_file(connection_socket)
+					# Enviando o arquivo zip para o servidor de backup
+					send_file(connection_socket)
 
-				if(checkPath("log")):
-					connection_log = open("{0}{1}{2}".format("logs", getFileSeparator(), "connection.log"))
+					if(checkPath("log")):
+						connection_log = "{0}{1}{2}".format("log", getFileSeparator(), "connection.log")
+						logData = "[{0} - {1} - {2}:{3}]\n\t{4}".format(get_data(), get_hora(), dados["ip"], dados["porta"], '\n\t'.join(get_zip_files()))
 
-				logData = "[{0} - {1} - {2}:{3}]{4}".format(get_data(), get_hora(), dados["ip"], dados["porta"], '\n\t'.join(get_zip_files))
+						# Gera o arquivo de relatório.
+						gera_log(connection_log, logData)
 
-				# Gera o arquivo de relatório.
-				gera_log(connection_log, logData)
+				else:
+					print("Não foram encontrados arquivos de backup!")
 
 			# Finalizando a conexão
 			connection_socket.close()
@@ -138,9 +141,9 @@ def get_property():
 
 
 def gera_log(arquivo, mensagem):
-	logData = mensagem
+	connection_log = open(arquivo,"a+")
 
-	arquivo.write(logData)
+	connection_log.write(mensagem)
 
 '''
 	Envia json com com as propriedades do host e do arquivo.
@@ -178,7 +181,7 @@ def get_zip_files():
 	zf = zipfile.ZipFile("backup{0}{1}{2}".format(getFileSeparator(), getNameFile(), ".zip"))
 
 	# Obtém lista de arquivos do zip.
-	arquivos_list[] = zf.namelist()
+	arquivos_list = zf.namelist()
 
 	# Retorna lista de arquivos do arquivo zip.
 	return arquivos_list

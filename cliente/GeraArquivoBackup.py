@@ -51,5 +51,7 @@ def checkPath(path):
 	if(not os.path.isdir(path)):
 		os.system("mkdir {0}".format(path))
 
+	return True
+
 if __name__ == "__main__":
 	main()
