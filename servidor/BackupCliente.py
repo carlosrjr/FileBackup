@@ -18,6 +18,7 @@ import socket, hashlib, time, threading, json, enum, os
 def main():
 	# Verificando diretórios
 	checkPath("logs");
+	checkPath("backups");
 
 	# Obtém o conteudo do arquivo de endereços ip dos hosts que participarão do backup.
 	file_ip = open("file_ip.txt", "r")
@@ -48,7 +49,6 @@ def ConnectionsManager(list_ip):
 		for lista in list_ip:
 			if(lista != ''):
 				dados = lista.split(";")
-				print(dados)
 				if(len(dados) == 2):
 					# Inicializando as Threads.
 					thread = threading.Thread(target=backupDados, args=(dados[0], dados[1].replace("\r", ""), 0,))
@@ -84,11 +84,11 @@ def backupDados(ip, password, attempt):
 
 		# Verficiando se a conexão foi aceita.
 		if(ok == "Conectado!"):
+			gravar_log(logs.CONNECTION_LOG.value, "Conexão estabelecida com {0} na porta {1}".format(ip, Connection.PORT.value))
 			getFile(clientSocket) # Tenta realizar backup do arquivo
-		else:
-			print("Senha incorreta!")
 
 		clientSocket.close()
+		gravar_log(logs.CONNECTION_LOG.value, "Conexão finalizada com {0} na porta {1}".format(ip, Connection.PORT.value))
 
 	except socket.timeout:
 		reconnect("O tempo de conexão excedeu o limite", attempt, ip, password)
@@ -124,7 +124,7 @@ def getFile(clientSocket):
 	# Definindo nome do arquivo
 	fileName = "{0}:{1}".format(ip, data)
 
-	f = open("{0}.zip".format(fileName), "wb") # Gerando arquivo que será recebido no diretorio
+	f = open("backups/{0}.zip".format(fileName), "wb") # Gerando arquivo que será recebido no diretorio
 
 	rec = clientSocket.recv(1024) # recebe primeira parte do arquivo
 	while(rec): # Enquanto rec não é null, o arquivo é gravado no diretório
@@ -192,7 +192,7 @@ def get_data():
 	Obtém a hora do sistema.
 '''
 def get_hora():
-	return time.strftime("%H-%M-%S")
+	return time.strftime("%H:%M:%S")
 
 '''
 	Enum definido para armazenar dados sobre a conexão.
