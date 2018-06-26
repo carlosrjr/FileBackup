@@ -29,25 +29,21 @@ def createZipFile(path):
 
 	checkPath("backup")
 
-	connection_log = "{0}{1}{2}".format("log", getFileSeparator(), "connection.log")
-
-	logData = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "Inicio da criação do aquivo zip.")
-
-	# Gera o arquivo de relatório.
-	gera_log(connection_log, logData)
-
 	zf = zipfile.ZipFile("{0}{1}{2}{3}".format("backup", getFileSeparator(), nameFile, ".zip"), "w")
 	for dirname, subdirs, files in os.walk("{0}".format(path)):
 		zf.write(dirname)
 		for filename in files:
 			zf.write(os.path.join(dirname, filename))
 
-	zf.close()
 
-	logData = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "Finalização da criação do aquivo zip.")
+	connection_log = "{0}{1}{2}".format("log", getFileSeparator(), "connection.log")
+
+	logData = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "Criação do aquivo zip.")
 
 	# Gera o arquivo de relatório.
 	gera_log(connection_log, logData)
+
+	zf.close()
 
 def getNameFile():
 	return os.environ['USERNAME']
@@ -63,10 +59,6 @@ def getFileSeparator():
 def checkPath(path):
 	if(not os.path.isdir(path)):
 		os.system("mkdir {0}".format(path))
-
-		connection_log = "{0}{1}{2}".format("log", getFileSeparator(), "connection.log")
-		logData = "\n[{0} - {1}]: Criação do diretorio: {2}".format(get_data(), get_hora(), path)
-		gera_log(connection_log, logData)
 
 	return True
 
