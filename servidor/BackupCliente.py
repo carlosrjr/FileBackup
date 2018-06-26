@@ -128,7 +128,7 @@ def get_tpc_Connection(ip, port):
 '''
 def getFile(clientSocket):
 	# Obténdo dados do host e do arquivo
-	nomeDispositivo, ip, data, checksum_md5_servidor, dados = getFileProperty(clientSocket) # Recebe o nome do arquivo do servidor
+	ip, data, checksum_md5_servidor, dados = getFileProperty(clientSocket) # Recebe o nome do arquivo do servidor
 
 	# Definindo nome do arquivo
 	fileName = "{0}:{1}".format(ip, data)
@@ -171,12 +171,11 @@ def getFileProperty(clientSocket):
 	# Fazendo parse de json para um dicionário.
 	dados = json.loads(json_dados)
 
-	nomeDispositivo = dados["host_name"]
 	data = dados["date"]
 	checksum_md5 = dados["checksum_md5"]
 	ip = dados["ip"]
 
-	return nomeDispositivo, ip, data, checksum_md5, dados
+	return ip, data, checksum_md5, dados
 
 '''
 	Verificando se diretório existe. Caso não exista, tenta criar.
