@@ -1,0 +1,25 @@
+[26/06/2018 16:33:20]: IP: 10.3.1.68 Porta: 23000 Tentativa: 0.
+[26/06/2018 16:33:20]: IP: 10.3.1.69 Porta: 23000 Tentativa: 0.
+[26/06/2018 16:33:20]: Conexão estabelecida com 10.3.1.68 na porta 23000.
+[26/06/2018 16:33:20]: {"date": "26-06-2018", "name_file": "aluno", "porta": 23000, "hour": "16-32-43", "ip": "10.3.1.68", "checksum_md5": "459c5359bf9cb1b8a50ebdfd7c8674e2", "host_name": "linux20"}.
+[26/06/2018 16:33:20]: Iniciando transferência do arquivo zip de 10.3.1.68..
+[26/06/2018 16:33:20]: Finalizando transferência do arquivo zip de 10.3.1.68..
+[26/06/2018 16:33:20]: Arquivo zip de 10.3.1.68 foi transferido com sucesso..
+[26/06/2018 16:33:20]: Conexão finalizada com 10.3.1.68 na porta 23000.
+[26/06/2018 16:33:23]: 10.3.1.69: Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede.
+[26/06/2018 16:33:23]: IP: 10.3.1.69 Porta: 23000 Tentativa: 1.
+[26/06/2018 16:33:26]: 10.3.1.69: Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede.
+[26/06/2018 16:33:26]: IP: 10.3.1.69 Porta: 23000 Tentativa: 2.
+[26/06/2018 16:33:29]: 10.3.1.69: Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede.
+[26/06/2018 16:33:29]: IP: 10.3.1.65 Porta: 23000 Tentativa: 0.
+[26/06/2018 16:33:29]: IP: 10.3.1.67 Porta: 23000 Tentativa: 0.
+[26/06/2018 16:33:29]: 10.3.1.67: Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede.
+[26/06/2018 16:33:29]: IP: 10.3.1.67 Porta: 23000 Tentativa: 1.
+[26/06/2018 16:33:29]: 10.3.1.65: Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede.
+[26/06/2018 16:33:29]: 10.3.1.67: Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede.
+[26/06/2018 16:33:29]: IP: 10.3.1.65 Porta: 23000 Tentativa: 1.
+[26/06/2018 16:33:29]: IP: 10.3.1.67 Porta: 23000 Tentativa: 2.
+[26/06/2018 16:33:29]: 10.3.1.67: Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede.
+[26/06/2018 16:33:29]: 10.3.1.65: Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede.
+[26/06/2018 16:33:29]: IP: 10.3.1.65 Porta: 23000 Tentativa: 2.
+[26/06/2018 16:33:29]: 10.3.1.65: Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede.

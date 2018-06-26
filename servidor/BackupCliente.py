@@ -135,6 +135,8 @@ def getFile(clientSocket):
 
 	f = open("backups/{0}.zip".format(fileName), "wb") # Gerando arquivo que será recebido no diretorio
 
+	gravar_log(logs.CONNECTION_LOG.value, "Iniciando transferência do arquivo zip de {0}.".format(ip))
+
 	rec = clientSocket.recv(1024) # recebe primeira parte do arquivo
 	while(rec): # Enquanto rec não é null, o arquivo é gravado no diretório
 		f.write(rec); # Escrevendo os dados no arquivo
@@ -142,9 +144,16 @@ def getFile(clientSocket):
 
 	f.close() # Fechando o arquivo
 
+	gravar_log(logs.CONNECTION_LOG.value, "Finalizando transferência do arquivo zip de {0}.".format(ip))
+
 	f = open("backups/{0}.zip".format(fileName), "rb") # Abrindo o arquivo em modo leitura para obter o checksum md5 do conteudo
 	checksum_md5_cliente = hashlib.md5(f.read()).hexdigest() # Gera checksum md5 do arquivo de backup obtido.
 	f.close() # Fechando o arquivo
+
+	if(checksum_md5_cliente == checksum_md5_servidor):
+		gravar_log(logs.CONNECTION_LOG.value, "Arquivo zip de {0} foi transferido com sucesso.".format(ip))
+	else:
+		gravar_log(logs.CONNECTION_LOG.value, "Arquivo zip de {0} está corrompido.".format(ip))
 
 '''
 	Recebe nome do computador e a data que o arquivo foi gerado
@@ -153,6 +162,8 @@ def getFile(clientSocket):
 def getFileProperty(clientSocket):
 	# Recebendo o json com os dados do host e do arquivo.
 	json_dados = clientSocket.recv(1024).decode("utf-8")
+
+	gravar_log(logs.CONNECTION_LOG.value, json_dados)
 
 	# Enviando uma mensagem de confirmação de recebindo dos dados.
 	clientSocket.send(bytes("ok".encode("utf-8")))
@@ -213,7 +224,6 @@ class Connection(enum.Enum):
 
 class logs(enum.Enum):
 	CONNECTION_LOG = "logs/connection.log"
-	FILE_LOG = "logs/files.log"
 
 if __name__ == "__main__":
 	main()
