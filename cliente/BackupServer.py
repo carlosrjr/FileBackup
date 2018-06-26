@@ -19,6 +19,8 @@ def main():
 	connection_socket = None
 
 	try:
+		checkPath("backup")
+		createZipFile("files")
 		# Gera a senha de conexão
 		key_connect = hashlib.md5("123456".encode("utf-8").strip()).hexdigest()
 
@@ -27,7 +29,6 @@ def main():
 
 		# Verificando se a conexão foi estabelecida.
 		if (connection_socket):
-
 			try:
 				# recebendo a chave de conexão do cliente.
 				key_server = connection_socket.recv(1024).decode("utf-8")
@@ -66,6 +67,12 @@ def main():
 
 				# Finalizando a conexão
 				connection_socket.close()
+
+				# Gravando no log de conexões.
+				history_data = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "Conexão finalizada!")
+				gera_log(history_log, history_data)
+
+
 
 			except (socket.herror, socket.gaierror, socket.error):
 				history_data = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "Ocorreu um erro no estabelecimento da conexão.")
