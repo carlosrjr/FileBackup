@@ -19,6 +19,7 @@ def main():
 	connection_socket = None
 
 	try:
+		checkPath("log")
 		checkPath("backup")
 		createZipFile("files")
 		# Gera a senha de conexão
@@ -153,7 +154,6 @@ def get_property():
 	dados = {
 		"ip" : "{0}".format(get_ip_address()), # ip do host
 		"porta": server_port, # porta de conexão
-		"host_name": "linux20", # nome do host
 		"name_file": "{0}".format(getNameFile()), # nome do arquivo
 		"checksum_md5": get_zip_md5(), # checksum_md5 do arquivo zip.
 		"date": time.strftime("%d-%m-%Y"), # data de envio
