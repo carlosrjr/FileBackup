@@ -29,8 +29,10 @@ def main():
 	# Fechando arquivo de ips.
 	file_ip.close()
 
-	# Inicia o gerenciamento de conexões.
-	ConnectionsManager(list_ip)
+	# Apenas inicia a conexão com os servidores, caso todos os ips da lista sejam válidos.
+	if (ips_verify(list_ip)):
+		# Inicia o gerenciamento de conexões.
+		ConnectionsManager(list_ip)
 
 '''
 	Gerencia os conexões com os clientes realizando a conexão
@@ -212,6 +214,17 @@ def get_data():
 '''
 def get_hora():
 	return time.strftime("%H:%M:%S")
+
+'''
+	Método que realiza a verificação dos ips. Caso exista um ip inválido na lista de ips, retorna False.
+'''
+def ips_verify(list_ips):
+	for ip in list_ip:
+		verify = ip.split(".")
+		for x in verify:
+			if (x < 1) or (x > 254)
+				return False
+	return True
 
 '''
 	Enum definido para armazenar dados sobre a conexão.
