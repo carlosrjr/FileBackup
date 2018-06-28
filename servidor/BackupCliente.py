@@ -29,10 +29,7 @@ def main():
 	# Fechando arquivo de ips.
 	file_ip.close()
 
-	# Apenas inicia a conexão com os servidores, caso todos os ips da lista sejam válidos.
-	if (ips_verify(list_ip)):
-		# Inicia o gerenciamento de conexões.
-		ConnectionsManager(list_ip)
+	ConnectionsManager(list_ip)
 
 '''
 	Gerencia os conexões com os clientes realizando a conexão
@@ -46,17 +43,19 @@ def ConnectionsManager(list_ip):
 	last_thread = 0; # Útima Thread que foi executada.
 	wait_thread = 0; # Número da Thread esperando.
 
+	print("FileBackup service started. wait...")
 	# Verificando se a lista de hosts não está vazia.
 	if(len(list_ip) > 0):
 		for lista in list_ip:
 			if(lista != ''):
 				dados = lista.split(";")
 				if(len(dados) == 2):
-					# Inicializando as Threads.
-					thread = threading.Thread(target=backupDados, args=(dados[0], dados[1].replace("\r", ""), 0,))
+					if(verifica_ip(dados[0])):
+						# Inicializando as Threads.
+						thread = threading.Thread(target=backupDados, args=(dados[0], dados[1].replace("\r", ""), 0,))
 
-					# Adicionando a nova Thread na lista de Threads.
-					threads.append(thread)
+						# Adicionando a nova Thread na lista de Threads.
+						threads.append(thread)
 
 	# Verificando qual foi a última thread executada. Caso já tenha executado todas, finaliza a execução.
 	while(last_thread < len(threads)):
@@ -69,6 +68,8 @@ def ConnectionsManager(list_ip):
 		for count in range(size):
 			threads[wait_thread].join()
 			wait_thread += 1
+
+	print("\nFileBackup service finished.")
 
 def backupDados(ip, password, attempt):
 	try:
@@ -218,14 +219,10 @@ def get_hora():
 '''
 	Método que realiza a verificação dos ips. Caso exista um ip inválido na lista de ips, retorna False.
 '''
-def ips_verify(list_ips):
-	ips = list_ips.split(";")
+def verifica_ip(ip):
+	if (re.match("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", ip) != None):
+		return True
 
-	for ip in ips:
-		if (re.match("\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b",ip) != None)
-			return True
-		else:
-			print("IP incorreto.")
 	return False
 
 '''
