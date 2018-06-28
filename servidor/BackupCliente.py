@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import socket, hashlib, time, threading, json, enum, os
+import socket, hashlib, time, threading, json, enum, os, re
 
 '''
 	Obtém todos os backups de todos os hosts cadastrados.
@@ -219,12 +219,14 @@ def get_hora():
 	Método que realiza a verificação dos ips. Caso exista um ip inválido na lista de ips, retorna False.
 '''
 def ips_verify(list_ips):
-	for ip in list_ip:
-		verify = ip.split(".")
-		for x in verify:
-			if (x < 1) or (x > 254)
-				return False
-	return True
+	ips = list_ips.split(";")
+
+	for ip in ips:
+		if (re.match("\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b",ip) != None)
+			return True
+		else:
+			print("IP incorreto.")
+	return False
 
 '''
 	Enum definido para armazenar dados sobre a conexão.
