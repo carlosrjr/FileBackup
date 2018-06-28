@@ -19,9 +19,13 @@ def main():
 	connection_socket = None
 
 	try:
+		# Verifica se as pastas de log e backup existem.
 		checkPath("log")
 		checkPath("backup")
+
+		# Cria o arquivo de backup.
 		createZipFile("files")
+
 		# Gera a senha de conexão
 		key_connect = hashlib.md5("123456".encode("utf-8").strip()).hexdigest()
 
@@ -73,8 +77,6 @@ def main():
 				history_data = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "Conexão finalizada!")
 				gera_log(history_log, history_data)
 
-
-
 			except (socket.herror, socket.gaierror, socket.error):
 				history_data = "\n[{0} - {1}]: {2}".format(get_data(), get_hora(), "Ocorreu um erro no estabelecimento da conexão.")
 				if(checkPath("log")):
@@ -120,7 +122,7 @@ def get_connection():
 		# Definindo o número de conexões que o socket estará escutando.
 		server_socket.listen(1)
 
-		print("Servidor aguardando conexão!")
+		print("Aguardando solicitação do servidor de backup.....")
 
 		# Aguardando a conexão com o servidor de backup
 		connection_socket, addr = server_socket.accept()
@@ -163,7 +165,9 @@ def get_property():
 	# Retornando dicionário com os dados.
 	return dados
 
-
+'''
+	Cria um arquivo de log no caminho especificado.
+'''
 def gera_log(arquivo, mensagem):
 	connection_log = open(arquivo,"a+")
 
@@ -191,11 +195,13 @@ def send_file(connection_socket):
 		# Lendo os primeiros bytes do arquivo
 		l = arquivo.read(1024)
 
+		printf("Iniciando envio do arquivo de backup...")
 		# Continua enviando equanto houver dados do arquivo para ser lido e enviado.
 		while(l):
 			connection_socket.send(bytes(l))
 			l = arquivo.read(1024)
 
+		printf("Envio finalizado!")
 		# Fechando o arquivo
 		arquivo.close()
 

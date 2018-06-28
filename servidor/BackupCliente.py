@@ -50,6 +50,7 @@ def ConnectionsManager(list_ip):
 			if(lista != ''):
 				dados = lista.split(";")
 				if(len(dados) == 2):
+					# Apenas cria a thread se o IP for válido. 
 					if(verifica_ip(dados[0])):
 						# Inicializando as Threads.
 						thread = threading.Thread(target=backupDados, args=(dados[0], dados[1].replace("\r", ""), 0,))
@@ -217,7 +218,7 @@ def get_hora():
 	return time.strftime("%H:%M:%S")
 
 '''
-	Método que realiza a verificação dos ips. Caso exista um ip inválido na lista de ips, retorna False.
+	Método que realiza a verificação dos ips. Caso o IP seja inválido, retorna False.
 '''
 def verifica_ip(ip):
 	if (re.match("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", ip) != None):
