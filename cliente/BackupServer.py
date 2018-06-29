@@ -195,13 +195,13 @@ def send_file(connection_socket):
 		# Lendo os primeiros bytes do arquivo
 		l = arquivo.read(1024)
 
-		printf("Iniciando envio do arquivo de backup...")
+		print("Iniciando envio do arquivo de backup...")
 		# Continua enviando equanto houver dados do arquivo para ser lido e enviado.
 		while(l):
 			connection_socket.send(bytes(l))
 			l = arquivo.read(1024)
 
-		printf("Envio finalizado!")
+		print("Envio finalizado!")
 		# Fechando o arquivo
 		arquivo.close()
 
