@@ -50,7 +50,7 @@ def ConnectionsManager(list_ip):
 			if(lista != ''):
 				dados = lista.split(";")
 				if(len(dados) == 2):
-					# Apenas cria a thread se o IP for válido. 
+					# Apenas cria a thread se o IP for válido.
 					if(verifica_ip(dados[0])):
 						# Inicializando as Threads.
 						thread = threading.Thread(target=backupDados, args=(dados[0], dados[1].replace("\r", ""), 0,))
@@ -96,21 +96,12 @@ def backupDados(ip, password, attempt):
 
 	except(socket.timeout):
 		reconnect("O tempo de conexão excedeu o limite", attempt, ip, password)
-	except(socket.error):
-		reconnect("Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede", attempt, ip, password)
 	except(socket.herror):
 		reconnect("Há um problema com o endereço do host", attempt, ip, password)
 	except(socket.gaierror):
 		reconnect("Erro ao conectar", attempt, ip, password)
-	except(ConnectionAbortedError):
-		gravar_log(logs.CONNECTION_LOG.value, "A Conexão foi abortada com {0}".format(ip))
-		clientSocket.close()
-	except(ConnectionRefusedError):
-		gravar_log(logs.CONNECTION_LOG.value, "A Conexão foi recusada com {0}".format(ip))
-		clientSocket.close()
-	except(ConnectionResetError):
-		gravar_log(logs.CONNECTION_LOG.value, "A Conexão foi reiniciada com {0}".format(ip))
-		clientSocket.close()
+	except(socket.error):
+		reconnect("Problema ao tentar estabelecer conexão. Verifique se o host está conectado à rede", attempt, ip, password)
 
 '''
 	Estabelece uma conexão TCP com um host
